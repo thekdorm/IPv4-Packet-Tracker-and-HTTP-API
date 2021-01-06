@@ -5,7 +5,7 @@
 #include <tins/tins.h>
 #include "sql.h"
 
-// WAIT_TIME time in between hash map dumps into SQL DB, seconds
+/* WAIT_TIME time in between hash map dumps into SQL DB, seconds */
 #define WAIT_TIME 10
 
 using namespace Tins;

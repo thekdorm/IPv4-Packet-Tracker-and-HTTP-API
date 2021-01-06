@@ -1,5 +1,5 @@
-// TODO Find clean way to define SQL .db file here from sniffer.cpp above
-// Possible that getting data from DB while main program is dumping will break something? Corner case.
+/* TODO Find clean way to define SQL .db file here from sniffer.cpp above
+Possible that getting data from DB while main program is dumping will break something? Corner case. */
 
 #include "httplib.h"
 #include "../sql.h"
@@ -8,13 +8,12 @@
 int main(){
     httplib::Server svr;
 
-    // Example Hello World
+    /* Example Hello World */
     svr.Get("/hi", [](const httplib::Request &, httplib::Response &res){
         res.set_content("Hello World!", "text/plain");
     });
 
-    // Endpoint to query SQL .db values
-    // 
+    /* Endpoint to query SQL .db values */
     svr.Get(R"(/api(/ip=([\w,\.]+))?)", [&](const httplib::Request &req, httplib::Response &res){
         if(req.matches[0] == "/api"){
             api_json("../test.db");
