@@ -16,10 +16,12 @@ int main(){
     /* Endpoint to query SQL .db values */
     svr.Get(R"(/api(/ip=([\w,\.]+))?)", [&](const httplib::Request &req, httplib::Response &res){
         if(req.matches[0] == "/api"){
-            api_json("../test.db");
+            res.set_content(api_json("../test.db"), "text/plain");
+            // api_json("../test.db");
         }
         else{
-            std::cout << get_count("../test.db", req.matches[2]) << std::endl;
+            res.set_content(api_json("../test.db", req.matches[2]), "text/plain");
+            // api_json("../test.db", req.matches[2]);
         }
         // res.set_content(std::to_string(get_count("../test.db", "192.168.56.1")), "text/plain");
     });

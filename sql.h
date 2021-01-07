@@ -1,5 +1,6 @@
 #include <sqlite3.h>
 #include <iostream>
+#include <sstream>
 #include <unordered_map>
 
 void create_db(const char* db_name){
@@ -106,6 +107,54 @@ void update_src_count(const char* db_name, const std::string ip, int count){
     sqlite3_close(db);
 }
 
-std::unordered_map<std::string, std::unordered_map<std::string, int>> api_json(const char* db_name const std::string ip=""){
-    
+//std::unordered_map<std::string, std::unordered_map<std::string, int>> api_json(const char* db_name, const std::string ip=""){
+std::string api_json(const char* db_name, const std::string ip=""){
+    std::unordered_map<std::string, std::unordered_map<std::string, int>> json;
+    std::stringstream response;
+    sqlite3 *db;
+    std::string statement;
+    char *err = 0;
+    int count = 0;
+    int rc;
+
+    rc = sqlite3_open(db_name, &db);
+
+    if(rc){
+        std::cout << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
+    }
+
+    sqlite3_exec(db, "begin transaction;", NULL, 0, &err);
+
+    /* Prepare query; need a couple cases for if we want a specific IP or all where ip="" */
+    sqlite3_stmt *stmt;
+    if(ip == ""){
+        statement = "select * from source_ips;";
+        sqlite3_prepare_v2(db, statement.c_str(), -1, &stmt, 0);
+    }
+    else{
+        statement = "select * from source_ips where ip=?;";
+        sqlite3_prepare_v2(db, statement.c_str(), -1, &stmt, 0);
+        sqlite3_bind_text(stmt, 1, ip.c_str(), ip.length(), SQLITE_STATIC);
+    }
+
+    /* Start building the JSON text */
+    while(sqlite3_step(stmt) == SQLITE_ROW){
+        std::cout << sqlite3_column_text(stmt, 0) << ": " << sqlite3_column_int(stmt, 1) << std::endl;
+        if(count == 0){  /* If first iteration */
+            response << "{\"" << sqlite3_column_text(stmt, 0) << "\": {\"COUNT\": " << sqlite3_column_int(stmt, 1) << "}";
+        }
+        else{
+            response << ", \"" << sqlite3_column_text(stmt, 0) << "\": {\"COUNT\": " << sqlite3_column_int(stmt, 1) << "}";
+        }
+        count++;
+    }
+    response << "}";
+
+    std::cout << response.str() << std::endl;
+
+    sqlite3_finalize(stmt);
+    sqlite3_exec(db, "end transaction;", NULL, 0, &err);
+    sqlite3_close(db);
+
+    return response.str();
 }
