@@ -1,3 +1,6 @@
+/* TODO add dynamic interface selection via command line arguments or selection, etc
+        add more stat parsing/pushing to SQL db */
+
 #include <iostream>
 #include <chrono>
 #include <unordered_map>
@@ -12,7 +15,7 @@ using namespace Tins;
 std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
 std::unordered_map<std::string, int> ip_map;
 const char *db = "test.db";
-
+const char *iface = "enp0s8";
 
 void INThandler(int sig){
     /* For now we just want to update the SQL DB upon SIGINT */
@@ -35,7 +38,7 @@ struct packet_sniffer {
         config.set_promisc_mode(true);
         config.set_immediate_mode(true);
 
-        Sniffer sniffer("enp0s8", config);
+        Sniffer sniffer(iface, config);
         sniffer.sniff_loop(make_sniffer_handler(this, &packet_sniffer::get_ip_packet));
     }
 

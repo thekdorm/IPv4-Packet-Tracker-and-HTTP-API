@@ -107,7 +107,6 @@ void update_src_count(const char* db_name, const std::string ip, int count){
     sqlite3_close(db);
 }
 
-//std::unordered_map<std::string, std::unordered_map<std::string, int>> api_json(const char* db_name, const std::string ip=""){
 std::string api_json(const char* db_name, const std::string ip=""){
     std::unordered_map<std::string, std::unordered_map<std::string, int>> json;
     std::stringstream response;
@@ -137,7 +136,9 @@ std::string api_json(const char* db_name, const std::string ip=""){
         sqlite3_bind_text(stmt, 1, ip.c_str(), ip.length(), SQLITE_STATIC);
     }
 
-    /* Start building the JSON text */
+    /* Start building the JSON text 
+    Should definitely look into a cleaner way of doing this for dynamic JSON building
+    i.e. if SQL db has more than just COUNT we'd like to be able to provide that too */
     while(sqlite3_step(stmt) == SQLITE_ROW){
         std::cout << sqlite3_column_text(stmt, 0) << ": " << sqlite3_column_int(stmt, 1) << std::endl;
         if(count == 0){  /* If first iteration */

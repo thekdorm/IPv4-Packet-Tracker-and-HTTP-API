@@ -23,7 +23,6 @@ int main(){
             res.set_content(api_json("../test.db", req.matches[2]), "text/plain");
             // api_json("../test.db", req.matches[2]);
         }
-        // res.set_content(std::to_string(get_count("../test.db", "192.168.56.1")), "text/plain");
     });
 
     svr.listen("192.168.56.101", 8080);
