@@ -1,7 +1,6 @@
 /* 
  * TODO 
  * Add more stat parsing/pushing to SQL db
- * Look into adding multithreading to start HTTP server along with sniffer in this main program
  * Look into packet parsing directly rather than using tins library for faster/easier compilation
  */
 
@@ -10,13 +9,17 @@
 #include <fstream>
 #include <chrono>
 #include <unordered_map>
+#include <thread>
+#include <sqlite3.h>
 #include <signal.h>
 #include <tins/tins.h>
-#include "sql.h"
+#include "include/httplib.h"
+#include "include/sql.hpp"
+#include "include/http_server.hpp"
 
 using namespace Tins;
 
-/* Define some globals here */ // Bad practice?? 
+/* Define some globals here */ // Bad practice? 
 std::unordered_map<std::string, std::string> configs;
 std::unordered_map<std::string, int> ip_map;
 const char* config = "config.txt";
@@ -113,11 +116,15 @@ struct packet_sniffer {
 };
 
 int main() {
+    /* Do some initial setup; define SIGINT behavior, parse config file, make sure SQL db is set up */
     signal(SIGINT, INThandler);
     get_config(config);
-
     create_db(configs["db"].c_str());
 
+    /* Start new thread to run HTTP server here */
+    std::thread http_server(run_server, configs["address"].c_str(), std::stoi(configs["port"]), configs["db"].c_str(), configs["debug"]);
+    
+    /* Create and run sniffer; sniffer.run() blocks so program will only end on SIGINT or some fatal exception/memory leak */
     packet_sniffer sniff;
     sniff.run();
 }

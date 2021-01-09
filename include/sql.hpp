@@ -1,8 +1,3 @@
-#include <sqlite3.h>
-#include <iostream>
-#include <sstream>
-#include <unordered_map>
-
 void create_db(const char* db_name){
     sqlite3 *db;
     std::string statement;
