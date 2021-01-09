@@ -11,7 +11,7 @@ void create_db(const char* db_name){
 
     rc = sqlite3_open(db_name, &db);
 
-    if(rc){
+    if (rc){
         std::cout << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
     }
 
@@ -56,7 +56,7 @@ int get_count(const char* db_name, const std::string ip){
 
     rc = sqlite3_open(db_name, &db);
 
-    if(rc){
+    if (rc){
         std::cout << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
     }
 
@@ -87,7 +87,7 @@ void update_src_count(const char* db_name, const std::string ip, int count){
 
     rc = sqlite3_open(db_name, &db);
 
-    if(rc){
+    if (rc){
         std::cout << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
     }
 
@@ -107,7 +107,7 @@ void update_src_count(const char* db_name, const std::string ip, int count){
     sqlite3_close(db);
 }
 
-std::string api_json(const char* db_name, const std::string ip=""){
+std::string api_json(const char* db_name, const std::string ip="", const std::string debug="disable"){
     std::unordered_map<std::string, std::unordered_map<std::string, int>> json;
     std::stringstream response;
     sqlite3 *db;
@@ -118,7 +118,7 @@ std::string api_json(const char* db_name, const std::string ip=""){
 
     rc = sqlite3_open(db_name, &db);
 
-    if(rc){
+    if (rc){
         std::cout << "Can't open database: " << sqlite3_errmsg(db) << std::endl;
     }
 
@@ -126,7 +126,7 @@ std::string api_json(const char* db_name, const std::string ip=""){
 
     /* Prepare query; need a couple cases for if we want a specific IP or all where ip="" */
     sqlite3_stmt *stmt;
-    if(ip == ""){
+    if (ip == ""){
         statement = "select * from source_ips;";
         sqlite3_prepare_v2(db, statement.c_str(), -1, &stmt, 0);
     }
@@ -136,12 +136,17 @@ std::string api_json(const char* db_name, const std::string ip=""){
         sqlite3_bind_text(stmt, 1, ip.c_str(), ip.length(), SQLITE_STATIC);
     }
 
-    /* Start building the JSON text 
-    Should definitely look into a cleaner way of doing this for dynamic JSON building
-    i.e. if SQL db has more than just COUNT we'd like to be able to provide that too */
-    while(sqlite3_step(stmt) == SQLITE_ROW){
-        std::cout << sqlite3_column_text(stmt, 0) << ": " << sqlite3_column_int(stmt, 1) << std::endl;
-        if(count == 0){  /* If first iteration */
+    /* 
+     * Start building the JSON text 
+     * Should definitely look into a cleaner way of doing this for dynamic JSON building
+     * i.e. if SQL db has more than just COUNT we'd like to be able to provide that too
+     */
+    while (sqlite3_step(stmt) == SQLITE_ROW){
+        if (debug == "enable"){
+            std::cout << sqlite3_column_text(stmt, 0) << ": " << sqlite3_column_int(stmt, 1) << std::endl;
+        }
+
+        if (count == 0){  // If first iteration 
             response << "{\"" << sqlite3_column_text(stmt, 0) << "\": {\"COUNT\": " << sqlite3_column_int(stmt, 1) << "}";
         }
         else{
@@ -149,8 +154,14 @@ std::string api_json(const char* db_name, const std::string ip=""){
         }
         count++;
     }
-    response << "}";
 
+    if (response.str().length() > 0){
+        response << "}";
+    }
+    else{  // Build response string for an empty response/invalid query
+        response << "{}";
+    }
+    
     std::cout << response.str() << std::endl;
 
     sqlite3_finalize(stmt);

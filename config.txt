@@ -1,0 +1,15 @@
+#Interface to listen on
+iface=enp0s8
+
+#SQL DB
+db=test.db
+
+#Wait time between stat dumps to SQL db
+wait_time=1800
+
+#HTTP info
+address=192.168.56.101
+port=8080
+
+#Debug mode, enables verbosity in some areas [enable, disable]
+debug=disable
